@@ -5,10 +5,9 @@ The revised PV diagnostics package has greater functionality than the original p
 Revised code developed by Manda Chasteen and May Wong, 2024\
 Original code developed by Nick Szapiro, 2016
 
+[Original MPAS-Model v7.3 Source Code](https://github.com/MPAS-Dev/MPAS-Model/tree/v7.3)
+
 _Note: The revised PV diagnostics package is heavily reliant upon tendency calculations associated with the ITM tendency package developed by M. Wong (also included in this repo)._
-
-
-
 
 ***
 
