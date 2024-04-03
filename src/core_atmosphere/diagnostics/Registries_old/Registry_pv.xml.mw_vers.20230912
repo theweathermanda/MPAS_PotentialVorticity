@@ -1,0 +1,330 @@
+<!-- ***************************************** -->
+<!-- PV diagnostics from Nicholas Szapiro (OU) -->
+<!-- Note that 1 PVU = 10^6 K kg^{−1} m^2 s^{−1} -->
+<!-- ***************************************** -->
+
+<var_struct name="diag" time_levs="1">
+
+        <var name="ertel_pv" type="real" dimensions="nVertLevels nCells Time" units="PVU"
+             description="Ertel's potential vorticity (1 PVU = 10^{-6} m^{2} s^{-1} K kg^{-1})"/>
+
+        <var name="u_pv" type="real" dimensions="nCells Time" units="m s^{-1}"
+             description="Zonal wind on dynamic tropopause diagnosed at end of previous time step (i.e., iLev_DT)"/>
+
+        <var name="v_pv" type="real" dimensions="nCells Time" units="m s^{-1}"
+             description="Meridional wind on dynamic tropopause diagnosed at end of previous time step (i.e., iLev_DT)"/>
+
+        <var name="theta_pv" type="real" dimensions="nCells Time" units="K"
+             description="Potential temperature on dynamic tropopause diagnosed at end of previous time step (i.e., iLev_DT)"/>
+
+        <var name="vort_pv" type="real" dimensions="nCells Time" units="s^{-1}"
+             description="Relative vertical vorticity on dynamic tropopause diagnosed at end of previous time step (i.e., iLev_DT)"/>
+
+        <var name="wCell" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
+             description="Vertical velocity interpolated to cell centers"/>
+
+        <var name="dEPV_dxZonal" type="real" dimensions="nVertLevels nCells Time" units="PVU m^{-1}"
+             description="Reconstructed zonal gradient of Ertel's PV"/>
+
+        <var name="dEPV_dyMerid" type="real" dimensions="nVertLevels nCells Time" units="PVU m^{-1}"
+             description="Reconstructed meridional gradient of Ertel's PV"/>
+
+        <var name="dEPV_dz" type="real" dimensions="nVertLevels nCells Time" units="PVU m^{-1}"
+             description="Vertical gradient of Ertel's PV"/>
+
+        <var name="advectionPV_zonal" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Zonal advection of Ertel's PV: +u*dPV/dx"/>
+
+        <var name="advectionPV_meridional" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Meridional advection of Ertel's PV: +v*dPV/dy"/>
+
+        <var name="advectionPV_vertical" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Vertical advection of Ertel's PV: +w*dPV/dz"/>
+
+        <var name="depv_dt_lw" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from longwave radiation"/>
+
+        <var name="depv_dt_sw" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from shortwave radiation"/>
+
+        <var name="depv_dt_bl" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from PBL"/>
+
+        <var name="depv_dt_cu" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from convection"/>
+
+        <var name="dtheta_dt_mp" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+             description="Potential temperature heating rate from microphysics"/>
+
+        <var name="depv_dt_mp" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from microphysics"/>
+
+        <var name="depv_dt_mp_evap_cw" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from microphysics - net condensation/evaporation of cloud water"/>
+
+        <var name="depv_dt_mp_evap_rw" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from microphysics - evaporation of rain water"/>
+
+        <var name="depv_dt_mp_depo_ice" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from microphysics - net deposition/sublimation of all ice hydrometeors"/>
+
+        <var name="depv_dt_mp_melt_ice" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from microphysics - melting of all ice hydrometeors"/>
+
+        <var name="depv_dt_mp_frez_ice" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from microphysics - freezing of all ice hydrometeors"/>
+
+        <var name="depv_dt_mp_allproc" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from summed microphysics processes"/>
+
+        <var name="depv_dt_adv" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="EPV tendency from advection"/>
+
+        <var name="depv_dt_dyn" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="EPV tendency from dynamics"/>
+
+        <var name="dtheta_dt_dyn" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Potential temperature tendency from dynamics"/>
+
+        <var name="dtheta_dt_mix" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+             description="Potential temperature heating rate from explicit numerical mixing"/>
+
+        <var name="depv_dt_mix" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency from explicit numerical mixing"/>
+
+        <var name="depv_dt_diab" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Sum of calculated EPV tendencies from diabatic processes"/>
+
+        <var name="depv_dt_fric" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Sum of calculated EPV tendencies from frictional processes"/>
+
+        <var name="tend_u_phys" type="real" dimensions="nVertLevels nEdges Time" units="m s^{-2}"
+             description="Normal wind tendencies from physics parameterizations"/>
+
+        <var name="uTend_curl" type="real" dimensions="nVertLevels nVertices Time" units="s^{-2}"
+             description="Curl of the normal wind tendencies at the cell vertices"/>
+
+        <var name="tend_wCell" type="real" dimensions="nVertLevels nCells Time" units="m s^{-2}"
+             description="Uncoupled vertical velocity tendency interpolated to cell center"/>
+
+        <var name="depv_dt_diab_pv" type="real" dimensions="nCells Time" units="PVU s^{-1}"
+             description="Diabatic EPV tendency on dynamic tropopause diagnosed at beginning of previous time step (i.e., iLev_DT_prev)"/>
+
+        <var name="depv_dt_fric_pv" type="real" dimensions="nCells Time" units="PVU s^{-1}"
+             description="Frictional EPV tendency on dynamic tropopause diagnosed at beginning of previous time step (i.e., iLev_DT_prev)"/>
+
+        <var name="iLev_DT" type="integer" dimensions="nCells Time" units="-"
+             description="Lowest vertical level at or above dynamic tropopause (.lt.1 if 2 PVU below column; .gt.nLevels if 2PVU above column)"/>
+
+        <var name="inTropo" type="integer" dimensions="nVertLevels nCells Time" units="0/1"
+             description="1 if within troposphere based on EPV flood fill"/>
+
+        <var name="uReconstructZonal_prev" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
+             description="Reconstructed zonal wind at beginning of previous time step"/>
+
+        <var name="uReconstructMeridional_prev" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
+             description="Reconstructed meridional wind at beginning of previous time step"/>
+
+        <var name="wCell_prev" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
+             description="Vertical velocity interpolated to cell centers at beginning of previous time step"/>
+
+        <var name="theta_prev" type="real" dimensions="nVertLevels nCells Time" units="K"
+             description="Potential temperature at beginning of previous time step"/>
+
+        <var name="rho_prev" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+             description="Density at cell center at beginning of previous time step"/>
+
+        <var name="qv_prev" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+             description="Water vapor mixing ratio at beginning of the time step"/>
+
+        <!--MW added rho_zz_prev for decoupling friction term -->
+        <var name="rho_zz_prev" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+             description="rho_zz at cell center at beginning of previous time step"/>
+
+        <var name="rho_edge_prev" type="real" dimensions="nVertLevels nEdges Time" units="kg m^{-3}"
+             description="Density at cell edge at beginning of previous time step"/>
+
+        <var name="ertel_pv_prev" type="real" dimensions="nVertLevels nCells Time" units="PVU"
+             description="Ertel's PV at beginning of previous time step"/>
+   
+        <var name="pv_vertex_prev" type="real" dimensions="nVertLevels nVertices Time" units="s^{-1}"
+             description="Absolute vertical voricity at cell vertices at beginning of previous time step"/>
+
+        <var name="iLev_DT_prev" type="integer" dimensions="nCells Time" units="-"
+             description="Lowest vertical level at or above dynamic tropopause at beginning of previous time step"/>
+
+        <var name="acc_depv_dt_lw" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from longwave radiation"/>
+
+        <var name="acc_depv_dt_sw" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from shortwave radiation"/>
+
+        <var name="acc_depv_dt_bl" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from PBL"/>
+
+        <var name="acc_depv_dt_cu" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from convection"/>
+
+        <var name="acc_depv_dt_mp" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from microphysics"/>
+
+        <var name="acc_depv_dt_mix" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from explicit numerical mixing"/>
+
+        <var name="acc_depv_dt_diab" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated sum of calculated EPV tendencies from diabatic processes"/>
+
+        <var name="acc_depv_dt_fric" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated sum of calculated EPV tendencies from frictional processes"/>
+
+        <var name="acc_depv_dt_adv" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated EPV tendency from advection"/>
+
+        <var name="acc_depv_dt_dyn" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated EPV tendency from dynamics"/>
+
+        <var name="acc_depv_dt_mp_evap_cw" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from microphysics - net condensation/evaporation of cloud water"/>
+
+        <var name="acc_depv_dt_mp_evap_rw" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from microphysics - evaporation of rain water"/>
+
+        <var name="acc_depv_dt_mp_depo_ice" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from microphysics - net deposition/sublimation of all ice hydrometeors"/>
+
+        <var name="acc_depv_dt_mp_melt_ice" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from microphysics - melting of all ice hydrometeors"/>
+
+        <var name="acc_depv_dt_mp_frez_ice" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from microphysics - freezing of all ice hydrometeors"/>
+
+        <var name="acc_depv_dt_mp_allproc" type="real" dimensions="nVertLevels nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency from summed microphysics processes"/>
+
+        <var name="acc_depv_dt_diab_pv" type="real" dimensions="nCells Time" units="PVU s^{-1}"
+             description="Accumulated diabatic EPV tendency on dynamic tropopause diagnosed at beginning of previous time step (i.e., iLev_DT_prev)"/>
+
+        <var name="acc_depv_dt_fric_pv" type="real" dimensions="nCells Time" units="PVU s^{-1}"
+             description="Accumulated frictional EPV tendency on dynamic tropopause diagnosed at beginning of previous time step (i.e., iLev_DT_prev)"/>
+
+        <var name="ertel_pv_dyn" type="real" dimensions="nVertLevels nCells Time" units="PVU"
+             description="Ertel's potential vorticity after dynamics (1 PVU = 10^{-6} m^{2} s^{-1} K kg^{-1})"/>
+
+        <var name="wCell_dyn" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
+             description="Vertical velocity interpolated to cell centers"/>
+
+        <var name="gradTheta_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta - x-component"/>
+
+        <var name="gradTheta_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta - y-component"/>
+
+        <var name="gradTheta_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta - z-component"/>
+
+        <var name="grad_tendphys_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta physics tendency - x-component"/>
+
+        <var name="grad_tendphys_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta physics tendency - y-component"/>
+
+        <var name="grad_tendphys_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta physics tendency - z-component"/>
+
+        <var name="grad_tendmix_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta explicit diffusion tendency - x-component"/>
+
+        <var name="grad_tendmix_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta explicit diffusion tendency - y-component"/>
+
+        <var name="grad_tendmix_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta explicit diffusion tendency- z-component"/>
+
+        <var name="grad_tenddyn_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta dynamics tendency - x-component"/>
+
+        <var name="grad_tenddyn_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta dynamics tendency - y-component"/>
+
+        <var name="grad_tenddyn_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta dynamics tendency- z-component"/>
+
+        <var name="acc_grad_tendphys_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta physics accumulated tendency - x-component"/>
+
+        <var name="acc_grad_tendphys_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta physics accumulated tendency - y-component"/>
+
+        <var name="acc_grad_tendphys_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta physics accumulated tendency - z-component"/>
+
+        <var name="acc_grad_tendmix_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta explicit diffusion accumulated tendency - x-component"/>
+
+        <var name="acc_grad_tendmix_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta explicit diffusion accumulated tendency - y-component"/>
+
+        <var name="acc_grad_tendmix_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta explicit diffusion accumulated tendency- z-component"/>
+
+        <var name="acc_grad_tenddyn_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta dynamics accumulated tendency - x-component"/>
+
+        <var name="acc_grad_tenddyn_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta dynamics accumulated tendency - y-component"/>
+
+        <var name="acc_grad_tenddyn_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Gradient of theta dynamics accumulated tendency- z-component"/>
+
+        <var name="absVort3D_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity - x-component"/>
+
+        <var name="absVort3D_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity - y-component"/>
+
+        <var name="absVort3D_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity - z-component"/>
+
+        <var name="absVort3Dtend_physmix_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity tendency due to physics and explicit diffusion - x-component"/>
+
+        <var name="absVort3Dtend_physmix_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity tendency due to physics and explicit diffusion - y-component"/>
+
+        <var name="absVort3Dtend_physmix_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity tendency due to physics and explicit diffusion- z-component"/>
+
+        <var name="absVort3Dtend_dyn_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity tendency due to dynamics - x-component"/>
+
+        <var name="absVort3Dtend_dyn_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity tendency due to dynamics - y-component"/>
+
+        <var name="absVort3Dtend_dyn_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity tendency due to dynamics - z-component"/>
+
+        <var name="acc_absVort3Dtend_physmix_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity accumulated tendency due to physics and explicit diffusion - x-component"/>
+
+        <var name="acc_absVort3Dtend_physmix_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity accumulated tendency due to physics and explicit diffusion - y-component"/>
+
+        <var name="acc_absVort3Dtend_physmix_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity accumulated tendency due to physics and explicit diffusion- z-component"/>
+
+        <var name="acc_absVort3Dtend_dyn_1" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity accumulated tendency due to dynamics - x-component"/>
+
+        <var name="acc_absVort3Dtend_dyn_2" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity accumulated tendency due to dynamics - y-component"/>
+
+        <var name="acc_absVort3Dtend_dyn_3" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Absolute vorticity accumulated tendency due to dynamics - z-component"/>
+
+        <var name="rho_calcepv" type="real" dimensions="nVertLevels nCells Time" units=""
+             description="Rho used for calculating epv"/>
+
+
+
+</var_struct>
+
