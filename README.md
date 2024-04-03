@@ -1,21 +1,26 @@
-This repo is an extension of MPAS-Atmosphere v7.3 to include significant improvements to the potential vorticity (PV) diagnostics package. This revised package has greater functionality than the original package and contains several important fixes and modifications to close the PV budget, which are detailed below.
+# MPAS-Atmosphere v7.3 with significant modifications to the potential vorticity (PV) diagnostics package #
+
+The revised PV diagnostics package has greater functionality than the original package and contains several important fixes and modifications to close the Eulerian PV budget to machine roundoff, which are detailed below.
+
+Revised code developed by Manda Chasteen and May Wong, 2024\
+Original code developed by Nick Szapiro, 2016
+
+_Note: The revised PV diagnostics package is heavily reliant upon tendency calculations associated with the ITM tendency package developed by M. Wong (also included in this repo)._
 
 
-!=====================================================================================================================
-! pv_diagnostics.F: MPAS code to compute Ertel's potential vorticity and tendency contributions to the Eulerian PV budget
-!=====================================================================================================================
-! Original diagnostics code was written by Nick Szapiro - 2016
-! Significant changes to the code were made by Manda Chasteen (chasteen@ucar.edu) and May Wong (mwong@ucar.edu) - 2023
-! Note: this revised PV diagnostics package is heavily reliant upon tendency calculations associated with the ITM
-!       tendency package (also included in this repo)
-!
-! Added namelist options for ease of toggling on PV diagnostics calculations
-! -- config_pv_diag          : flag for whether the 3D PV field and fields interpolated to dynamic tropopause are desired
-! -- config_pv_tend          : flag for whether PV tendency diagnostics are desired (required for config_pv_microphys, config_pv_isobaric)
-! -- config_pv_scalar        : flag for whether pv_scalar is initialized as PV and then transported as passive scalar
-! -- config_pv_microphys     : flag for whether specific microphysics process PV tendencies are desired (Thompson only)
-! -- config_pv_isobaric      : flag for whether isobaric interpolation of PV diagnostics variables is desired
-!
+
+
+***
+
+### Summary of changes made to [`pv_diagnostics.F`](src/core_atmosphere/diagnostics/pv_diagnostics.F) and other dependent files: ###
+
+**Added namelist options for ease of toggling on PV diagnostics calculations**
+- **`config_pv_diag`**          : flag for whether the 3D PV field and fields interpolated to dynamic tropopause are desired
+- **`config_pv_tend`**          : flag for whether PV tendency diagnostics are desired (required for config_pv_microphys, config_pv_isobaric)
+- **`config_pv_scalar`**        : flag for whether pv_scalar is initialized as PV and then transported as passive scalar
+- **`config_pv_microphys`**     : flag for whether specific microphysics process PV tendencies are desired (Thompson only)
+- **`config_pv_isobaric`**      : flag for whether isobaric interpolation of PV diagnostics variables is desired
+
 ! --------------------------------------------------------------------------------------------------------------------
 ! Subroutines contained in pv_diagnostics.F:
 ! ------------------------------------------
