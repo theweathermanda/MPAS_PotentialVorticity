@@ -12,7 +12,7 @@ _Note: The revised PV diagnostics package is heavily reliant upon tendency calcu
 
 ***
 
-### Summary of changes made to [`pv_diagnostics.F`](src/core_atmosphere/diagnostics/pv_diagnostics.F) and other dependent files: ###
+### Summary of changes: ###
 
 **Added namelist options for ease of toggling on PV diagnostics calculations**
 - **`config_pv_diag`**          : flag for whether the 3D PV field and fields interpolated to dynamic tropopause are desired
@@ -21,55 +21,24 @@ _Note: The revised PV diagnostics package is heavily reliant upon tendency calcu
 - **`config_pv_microphys`**     : flag for whether specific microphysics process PV tendencies are desired (Thompson only)
 - **`config_pv_isobaric`**      : flag for whether isobaric interpolation of PV diagnostics variables is desired
 
-! --------------------------------------------------------------------------------------------------------------------
-! Subroutines contained in pv_diagnostics.F:
-! ------------------------------------------
-! pv_diagnostics_setup    : setup diagnostics package and performs initial check of PV config flags
-! pv_diagnostics_reset    : calls store_previous_vars to save previous timestep variables and pv_diagnostics_dyn_init
-!                         : to initialize and reset the computed theta and momentum tendencies as zeros
-! pv_diagnostics_update   : calls atm_compute_pv_diagnostics and atm_compute_pvBudget_diagnostics to compute PV, all
-!                           PV tendency variables, and interpolation of variables onto identified dynamic tropopause
-! pv_diagnostics_init     : initializes PV scalar variable if desired and not a restart run. called in a
-!                           new subroutine mpas_atm_diag_pv_init() that is then explicitly called in mpas_atm_core.F
-! pv_diagnostics_compute  : calls MPAS_field_will_be_written for various quantities.
-!                           MC_TODO NOTE: I'm not sure that this is necessary... variables are written if included in streams
-!
-!
-! Order that subroutines are called in mpas_atm_core:
-! -- At model intiialziation: pv_diagnostics_reset, pv_diagnostics_update, pv_diagnostics_init, pv_diagnostics_compute,
-!                             pv_diagnostics_reset
-!
-! -- During time step integration: pv_diagnostics_update, pv_diagnostics_compute, pv_diagnostics_reset
-! ********************************************************************************************************************
-!
-! Changes made from the original PV diagnostics code include:
-  ! -----------------------------------------------------------
-  ! * Different formulation for calculation of horizontal gradients on native MPAS grid. The updated method is based on
-  !   Eq. 22 in Ringler et al. (2010) and is more robust than the previous method implemented by NS
-  ! * Reconstruction of horizontal gradients on each cell's edges to the cell center following the same method as the
-  !   horizontal wind reconstruction in mpas_vector_reconstruction.F
-  ! * Changes to the calculation of the PV tendency terms to ensure that the correct time levels are used for the
-  !   coefficients, as determined by discretizing the equation for PV. We employ consistent time levels for all relevant
-  !   PV tendencies computed in MPAS:
-  !   -- in diabatic PV tendencies, the 3D absolute vorticity vector from time level t
-  !   -- in frictional PV tendencies, the 3D potential temperature gradient from time level t+dt
-  !   -- density from t+dt is used in all relevant calculations 
-  !   This important change requires storing fields from the beginning of the time step to be used in the PV tendency
-  !   calculations because the model state and diagnostic fields are updated and assigned to time level 1 before the
-  !   PV diagnostics are called at the end of the time step in mpas_atm_core.F. Thus, before this change was
-  !   implemented, the updated variables from the end of the time step were incorrectly used alongside all these
-  !    tendencies.
-  ! * Update required to mpas_atm_core.F to ensure that diagnostic quantities theta and rho are updated at each time
-  !   step. Previously, these were only calculated if alarm bell for writing an outfile was activated
-  ! * Split frictional tendencies into components from explicit mixing, PBL+GWD schemes, and cumulus schemes, which
-  !   are then summed to produce the full frictional tendency depv_dt_fric. This required the introduction of individual
-  !   momentum tendency variables and renders the original tend_u_phys term obsolute, which has therefore been removed.
-  !   These tendencies are derived from the coupled momentum tendencies rather than taking the uncoupled tendencies
-  !   directly from physics. 
-  ! * Corrections were made to the diffusion friction tendency terms, which had previously called tend_u_euler and
-  !   tend_w_euler variables that comprised other momentum tendencies in addition to diffusion. These required calculating
-  !   additional variables, u_tend_diff and w_tend_diff, in mpas_atm_time_integration.F that contain only the tendency
-  !   contributions from diffusion.
+**Changes made from the original made to [`pv_diagnostics.F`](src/core_atmosphere/diagnostics/pv_diagnostics.F) and other dependent files:**
+* Different formulation for calculation of horizontal gradients on native MPAS grid. The updated method is based on Eq. 22 in [Ringler et al. (2010)](https://doi.org/10.1016/j.jcp.2009.12.007) and is more robust than the previous method implemented by NS
+  
+* Reconstruction of horizontal gradients on each cell's edges to the cell center following the same method as the horizontal wind reconstruction in [`mpas_vector_reconstruction.F`](src/operators/mpas_vector_reconstruction.F)
+  
+* Changes to the calculation of the PV tendency terms to ensure that the correct time levels are used for the coefficients, as determined by discretizing the equation for PV. We employ consistent time levels for all relevant PV tendencies computed in MPAS:
+  * In diabatic PV tendencies, the 3D absolute vorticity vector from time level t
+  * In frictional PV tendencies, the 3D potential temperature gradient from time level t+dt
+  * Density from t+dt is used in all relevant calculations
+    
+  This important change requires storing fields from the beginning of the time step to be used in the PV tendency calculations because the model state and diagnostic fields are updated and assigned to time level 1 before the PV diagnostics are called at the end of the time step in [`mpas_atm_core.F`](src/core_atmosphere/mpas_atm_core.F). Thus, before this change was implemented, the updated variables from the end of the time step were incorrectly used alongside all these tendencies.
+
+* Update required to [`mpas_atm_core.F`](src/core_atmosphere/mpas_atm_core.F) to ensure that diagnostic quantities `theta` and `rho` are updated at each time step. Previously, these were only calculated if alarm bell for writing an outfile was activated. (_Note: these were computed directly in NS's original code_)
+  
+* Split frictional tendencies into components from explicit mixing, PBL+GWD schemes, and cumulus schemes, which are then summed to produce the full frictional tendency `depv_dt_fric`. This required the introduction of individual momentum tendency variables and renders the original `tend_u_phys` term obsolute, which has therefore been removed. These tendencies are derived from the coupled momentum tendencies rather than taking the uncoupled tendencies directly from physics.
+  
+* Corrections were made to the diffusion friction tendency terms, which had previously called `tend_u_euler` and `tend_w_euler` variables that comprised other momentum tendencies in addition to diffusion. These required calculating additional variables, `u_tend_diff` and `w_tend_diff`, in [`mpas_atm_time_integration.F`](src/core_atmosphere/mpas_atm_time_integration.F) that contain only the tendency contributions from diffusion.
+  
   ! * The potential temperature tendency (dtheta_dt_mix) that is input into the diabatic diffusion tendency calculation
   !   was initially coupled to mass, which needed to be fixed. The tendency now is computed by decoupling the theta_m
   !   tendency associated with mixing from moisture (calculated in mpas_atm_time_integration), which is more accurate
