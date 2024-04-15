@@ -61,3 +61,7 @@ _Note: The revised PV diagnostics package is heavily reliant upon tendency calcu
 *  Incorporation of routine to interpolate PV diagnostics to isobaric levels (code also modified in [`isobaric_diagnostics.F`](src/core_atmosphere/diagnostics/isobaric_diagnostics.F) 
   and then accumulate the interpolated tendencies to isobaric levels. Requires `config_pv_isobaric = .true.` _Note: changes to this procedure requires making changes to [`isobaric_diagnostics.F`](src/core_atmosphere/diagnostics/isobaric_diagnostics.F) and [`Registry_isobaric.xml`](src/core_atmosphere/diagnostics/Registry_isobaric.xml)_
 
+
+***
+
+_This code is based upon work supported by the NSF National Center for Atmospheric Research, a major facility sponsored by the U.S. National Science Foundation and managed by the University Corporation for Atmospheric Research._ 
