@@ -65,3 +65,5 @@ _Note: The revised PV diagnostics package is heavily reliant upon tendency calcu
 ***
 
 _This code is based upon work supported by the NSF National Center for Atmospheric Research, a major facility sponsored by the U.S. National Science Foundation and managed by the University Corporation for Atmospheric Research._ 
+
+[![DOI](https://zenodo.org/badge/781693390.svg)](https://zenodo.org/doi/10.5281/zenodo.11206291)
