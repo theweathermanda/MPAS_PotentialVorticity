@@ -1981,11 +1981,9 @@ module pv_diagnostics
    !     w level, and then calculating the center difference. A one-sided difference is still used at the top model level. 
    !     For all other mass levels, a weighted average of the one-sided differences is used to 
    !     calculate the center differences. 
-   ! 03/20/24: NOTE -- this has not been modified with the needed metric term correction; the other subroutine should
-   !     be used instead.
    !*********************************************************************************************************************
 
-   subroutine calc_vertDeriv_alt(var, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dvar_dz)
+   subroutine calc_vertDeriv_alt(var, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dvar_dz)
 
       IMPLICIT NONE
 
@@ -1993,7 +1991,7 @@ module pv_diagnostics
       real(kind=RKIND), intent(in) :: cf1, cf2, cf3
 
       real(kind=RKIND), dimension(:), intent(in) ::  dzu, rdzw
-      real(kind=RKIND), dimension(:,:), intent(in) :: var
+      real(kind=RKIND), dimension(:,:), intent(in) :: var, zgrid, zCell
       real(kind=RKIND), dimension(:,:), intent(out) :: dvar_dz
 
       integer :: iCell, k
@@ -2010,15 +2008,15 @@ module pv_diagnostics
         ! interpolate to w level above, and then take the center diff. 
          var_w1 = cf1 * var(1,iCell) + cf2 * var(2,iCell) + cf3 * var(3,iCell)
          var_w2 = (0.5/dzu(2)) * (dzw(2)*var(1,iCell) + dzw(1)*var(2,iCell)) 
-         dvar_dz(1,iCell) = (var_w2 - var_w1)/dzw(1)
+         dvar_dz(1,iCell) = (var_w2 - var_w1)/(zgrid(2,iCell) - zgrid(1,iCell))
 
         ! one-sided differences at top level
          dvar_dz(nVertLevels,iCell) = (var(nVertLevels,iCell) - var(nVertLevels-1,iCell)) / &
-                                       dzu(nVertLevels)
+                                       (zCell(nVertLevels,iCell) - zCell(nVertLevels-1,iCell))
          do k=2,nVertLevels-1
-            dvar_dz_top = (var(k+1,iCell) - var(k,iCell)) / dzu(k+1)
-            dvar_dz_bot = (var(k,iCell) - var(k-1,iCell)) / dzu(k)
-            
+            dvar_dz_top = (var(k+1,iCell) - var(k,iCell)) / (zCell(k+1,iCell) - zCell(k,iCell))
+            dvar_dz_bot = (var(k,iCell) - var(k-1,iCell)) / (zCell(k,iCell) - zCell(k-1,iCell))
+
             ! Alter weighting to weight bottom derivative more than top since levels closer together
             dvar_dz(k,iCell) = dzu(k+1)/(dzu(k) + dzu(k+1))*dvar_dz_bot + dzu(k)/(dzu(k) + dzu(k+1))*dvar_dz_top
          end do
@@ -2250,7 +2248,7 @@ module pv_diagnostics
       ! For alternative method, comment out above and uncomment below (and in all locations where vertical 
       ! derivatve is calculated). Note: the PV budget residual is lower when using the default method. 
       !
-      ! call calc_vertDeriv_alt(theta, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dTheta_dz)
+      ! call calc_vertDeriv_alt(theta, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dTheta_dz)
 
       ! (3) Combine theta derivatives into 3D vector
 
@@ -2270,8 +2268,8 @@ module pv_diagnostics
       ! For alternative method, comment out above and uncomment below (and in all locations where vertical 
       ! derivatve is calculated). Note: the PV budget residual is lower when using the default method. 
       !
-      ! call calc_vertDeriv_alt(uReconstructZonal, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duZonal_dz)
-      ! call calc_vertDeriv_alt(uReconstructMeridional, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duMerid_dz)
+      ! call calc_vertDeriv_alt(uReconstructZonal, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duZonal_dz)
+      ! call calc_vertDeriv_alt(uReconstructMeridional, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duMerid_dz)
 
       ! (2) Interpolate w to cell centers, calculate gradient of w on edges, and then reconstruct to get 
       !     zonal and meridional gradients at cell centers: dw_dx, dw_dy 
@@ -2809,7 +2807,7 @@ module pv_diagnostics
       call calc_vertDeriv(theta, nCells, nVertLevels, zCell, dTheta_dz)
 
       ! For alternative method, comment out above and uncomment below. 
-      ! call calc_vertDeriv_alt(theta, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dTheta_dz)
+      ! call calc_vertDeriv_alt(theta, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dTheta_dz)
 
       ! (3) Combine theta derivatives into 3D vector
       gradTheta(:,:,1) = dTheta_dxZonal
@@ -2825,8 +2823,8 @@ module pv_diagnostics
       call calc_vertDeriv(uReconstructMeridional_prev, nCells, nVertLevels, zCell, duMerid_dz)
 
       ! For alternative method, comment out above and uncomment below. 
-      ! call calc_vertDeriv_alt(uReconstructZonal_prev, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duZonal_dz)
-      ! call calc_vertDeriv_alt(uReconstructMeridional_prev, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duMerid_dz)
+      ! call calc_vertDeriv_alt(uReconstructZonal_prev, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duZonal_dz)
+      ! call calc_vertDeriv_alt(uReconstructMeridional_prev, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duMerid_dz)
 
       ! (2) Interpolate w to cell centers, calculate gradient of w on edges, and then reconstruct to get 
       !     zonal and meridional gradients at cell centers: dw_dx, dw_dy 
@@ -2868,7 +2866,7 @@ module pv_diagnostics
          call calc_vertDeriv(dtheta_dt_lw, nCells, nVertLevels, zCell, dLWtend_dz)
 
          ! For alternative method, comment out above and uncomment below. 
-         ! call calc_vertDeriv_alt(dtheta_dt_lw, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dLWtend_dz)
+         ! call calc_vertDeriv_alt(dtheta_dt_lw, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dLWtend_dz)
 
          ! (3) Combine into 3D theta tendency gradient vector 
          grad_diabatic_LW(:,:,1) = dLWtend_dxZonal
@@ -2898,7 +2896,7 @@ module pv_diagnostics
           call calc_vertDeriv(dtheta_dt_sw, nCells, nVertLevels, zCell, dSWtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(dtheta_dt_sw, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dSWtend_dz)
+          ! call calc_vertDeriv_alt(dtheta_dt_sw, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dSWtend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_SW(:,:,1) = dSWtend_dxZonal
@@ -2928,7 +2926,7 @@ module pv_diagnostics
           call calc_vertDeriv(dtheta_dt_pbl, nCells, nVertLevels, zCell, dBLtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(dtheta_dt_pbl, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dBLtend_dz)
+          ! call calc_vertDeriv_alt(dtheta_dt_pbl, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dBLtend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_BL(:,:,1) = dBLtend_dxZonal
@@ -2958,7 +2956,7 @@ module pv_diagnostics
           call calc_vertDeriv(dtheta_dt_cu, nCells, nVertLevels, zCell, dCUtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(dtheta_dt_cu, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dCUtend_dz)
+          ! call calc_vertDeriv_alt(dtheta_dt_cu, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dCUtend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_CU(:,:,1) = dCUtend_dxZonal
@@ -2988,7 +2986,7 @@ module pv_diagnostics
           call calc_vertDeriv(dtheta_dt_mp, nCells, nVertLevels, zCell, dMPtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(dtheta_dt_mp, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dMPtend_dz)
+          ! call calc_vertDeriv_alt(dtheta_dt_mp, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dMPtend_dz)
  
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_MP(:,:,1) = dMPtend_dxZonal
@@ -3018,7 +3016,7 @@ module pv_diagnostics
           call calc_vertDeriv(dtheta_dt_mix, nCells, nVertLevels, zCell, dMXtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(dtheta_dt_mix, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dMXtend_dz)
+          ! call calc_vertDeriv_alt(dtheta_dt_mix, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dMXtend_dz)
  
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_MX(:,:,1) = dMXtend_dxZonal
@@ -3055,7 +3053,7 @@ module pv_diagnostics
           call calc_vertDeriv(tend_theta_mp_evap_cw, nCells, nVertLevels, zCell, dMPevapcwtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(tend_theta_mp_evap_cw, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dMPevapcwtend_dz)
+          ! call calc_vertDeriv_alt(tend_theta_mp_evap_cw, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dMPevapcwtend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_MP_evap_cw(:,:,1) = dMPevapcwtend_dxZonal
@@ -3084,7 +3082,7 @@ module pv_diagnostics
           call calc_vertDeriv(tend_theta_mp_evap_rw, nCells, nVertLevels, zCell, dMPevaprwtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(tend_theta_mp_evap_rw, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dMPevaprwtend_dz)
+          ! call calc_vertDeriv_alt(tend_theta_mp_evap_rw, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dMPevaprwtend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_MP_evap_rw(:,:,1) = dMPevaprwtend_dxZonal
@@ -3113,7 +3111,7 @@ module pv_diagnostics
           call calc_vertDeriv(tend_theta_mp_depo_ice, nCells, nVertLevels, zCell, dMPdepotend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(tend_theta_mp_depo_ice, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dMPdepotend_dz)
+          ! call calc_vertDeriv_alt(tend_theta_mp_depo_ice, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dMPdepotend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_MP_depo(:,:,1) = dMPdepotend_dxZonal
@@ -3143,7 +3141,7 @@ module pv_diagnostics
           call calc_vertDeriv(tend_theta_mp_melt_ice, nCells, nVertLevels, zCell, dMPmelttend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(tend_theta_mp_melt_ice, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dMPmelttend_dz)
+          ! call calc_vertDeriv_alt(tend_theta_mp_melt_ice, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dMPmelttend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_MP_melt(:,:,1) = dMPmelttend_dxZonal
@@ -3172,7 +3170,7 @@ module pv_diagnostics
           call calc_vertDeriv(tend_theta_mp_frez_ice, nCells, nVertLevels, zCell, dMPfreztend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(tend_theta_mp_frez_ice, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dMPfreztend_dz)
+          ! call calc_vertDeriv_alt(tend_theta_mp_frez_ice, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dMPfreztend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_diabatic_MP_frez(:,:,1) = dMPfreztend_dxZonal
@@ -3205,7 +3203,7 @@ module pv_diagnostics
           call calc_vertDeriv(tend_theta_mp_sum, nCells, nVertLevels, zCell, dMPsumtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(tend_theta_mp_sum, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dMPsumtend_dz)
+          ! call calc_vertDeriv_alt(tend_theta_mp_sum, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dMPsumtend_dz)
 
           ! (4) Combine into 3D theta tendency gradient vector 
           grad_diabatic_MP_sum(:,:,1) = dMPsumtend_dxZonal
@@ -3242,8 +3240,8 @@ module pv_diagnostics
          call calc_vertDeriv(tend_uMerid_mix, nCells, nVertLevels, zCell, duMeridTend_dz_mix)
 
          ! For alternative method, comment out above and uncomment below. 
-         ! call calc_vertDeriv_alt(tend_uZonal_mix, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duZonalTend_dz_mix)
-         ! call calc_vertDeriv_alt(tend_uMerid_mix, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duMeridTend_dz_mix)
+         ! call calc_vertDeriv_alt(tend_uZonal_mix, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duZonalTend_dz_mix)
+         ! call calc_vertDeriv_alt(tend_uMerid_mix, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duMeridTend_dz_mix)
 
          ! (3) Interpolate w tendency from diffusion to cell center, calclulate gradient of tend_wCell_diff on edges,
          !     and then reconstruct to get zonal and meridional gradients at cell center:
@@ -3288,8 +3286,8 @@ module pv_diagnostics
          call calc_vertDeriv(tend_uMerid_pbl, nCells, nVertLevels, zCell, duMeridTend_dz_pbl)
 
          ! For alternative method, comment out above and uncomment below. 
-         ! call calc_vertDeriv_alt(tend_uZonal_pbl, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duZonalTend_dz_pbl)
-         ! call calc_vertDeriv_alt(tend_uMerid_pbl, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duMeridTend_dz_pbl)
+         ! call calc_vertDeriv_alt(tend_uZonal_pbl, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duZonalTend_dz_pbl)
+         ! call calc_vertDeriv_alt(tend_uMerid_pbl, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duMeridTend_dz_pbl)
 
          ! (3) Since w tendency from PBL scheme is zero, just set dWtend_dxZonal_phys, dWtend_dyMerid_phys = 0.0 (done above) 
          !     If model is ever updated to include a cumulus scheme that alters w, will need to modify this.
@@ -3328,8 +3326,8 @@ module pv_diagnostics
          call calc_vertDeriv(tend_uMerid_cu, nCells, nVertLevels, zCell, duMeridTend_dz_cu)
 
          ! For alternative method, comment out above and uncomment below. 
-         ! call calc_vertDeriv_alt(tend_uZonal_cu, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duZonalTend_dz_cu)
-         ! call calc_vertDeriv_alt(tend_uMerid_cu, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duMeridTend_dz_cu)
+         ! call calc_vertDeriv_alt(tend_uZonal_cu, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duZonalTend_dz_cu)
+         ! call calc_vertDeriv_alt(tend_uMerid_cu, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duMeridTend_dz_cu)
  
          ! (3) Since w tendency from PBL scheme is zero, just set dWtend_dxZonal_phys, dWtend_dyMerid_phys = 0.0 (done above) 
          !     If model is ever updated to include a cumulus scheme that alters w, will need to modify this.
@@ -3378,7 +3376,7 @@ module pv_diagnostics
           call calc_vertDeriv(dtheta_dt_dyn, nCells, nVertLevels, zCell, dDYNtend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(dtheta_dt_dyn, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, dDYNtend_dz)
+          ! call calc_vertDeriv_alt(dtheta_dt_dyn, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, dDYNtend_dz)
 
           ! (3) Combine into 3D theta tendency gradient vector 
           grad_DYN(:,:,1) = dDYNtend_dxZonal
@@ -3406,8 +3404,8 @@ module pv_diagnostics
           call calc_vertDeriv(tend_uMerid_dyn, nCells, nVertLevels, zCell, duMeridTend_dz)
 
           ! For alternative method, comment out above and uncomment below. 
-          ! call calc_vertDeriv_alt(tend_uZonal_dyn, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duZonalTend_dz)
-          ! call calc_vertDeriv_alt(tend_uMerid_dyn, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, duMeridTend_dz)
+          ! call calc_vertDeriv_alt(tend_uZonal_dyn, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duZonalTend_dz)
+          ! call calc_vertDeriv_alt(tend_uMerid_dyn, nCells, nVertLevels, dzu, cf1, cf2, cf3, rdzw, zgrid, zCell, duMeridTend_dz)
           
           ! (3) Interpolate w tendency from dynamics to cell center, uncouple from density, calclulate gradient 
           !     of tend_wCell on edges, and then reconstruct to get zonal and meridional gradients at cell center:
