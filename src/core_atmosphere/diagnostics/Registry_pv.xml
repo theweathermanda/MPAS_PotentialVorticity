@@ -212,6 +212,9 @@
 
     
         <!-- Intermediate static variables --> 
+        <var name="zgrid_cell" type="real" dimensions="nVertLevels nCells Time" units="m"
+                description="Geometric height of cell centers on mass levels"/>
+        
         <var name="wCell" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
              description="Vertical velocity interpolated to cell centers"/>
     
