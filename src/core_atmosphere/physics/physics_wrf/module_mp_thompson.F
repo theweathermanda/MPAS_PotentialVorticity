@@ -60,15 +60,12 @@
 !.. 7 March 2023
 ! ..
 
-! tend_temp_mp_evap_cw: Net temperature heating rate from cloud water condensation and evaporation
-! tend_temp_mp_evap_rw: Temperature heating rate from rain water evaporation
-! tend_temp_mp_depo_ice: Net temperature heating rate from deposition and sublimation of all ice hydrometeors
-! tend_temp_mp_melt_ice: Temperature heating rate from melting of all ice hydrometeors
-! tend_temp_mp_frez_ice: Temperature heating rate from freezing/riming of all ice hydrometeors
+! tend_theta_mp_evap_cw: Net potential temperature heating rate from cloud water condensation and evaporation
+! tend_theta_mp_evap_rw: Potential temperature heating rate from rain water evaporation
+! tend_theta_mp_depo_ice: Net potential temperature heating rate from deposition and sublimation of all ice hydrometeors
+! tend_theta_mp_melt_ice: Potential temperature heating rate from melting of all ice hydrometeors
+! tend_theta_mp_frez_ice: Potential temperature heating rate from freezing/riming of all ice hydrometeors
 !
-! Above tendencies are converted to potential temperature tendencies in mpas_atmphys_interface.F 
-! by dividing by Exner function
-
 !+---+-----------------------------------------------------------------+
 !wrft:model_layer:physics
 !+---+-----------------------------------------------------------------+
@@ -995,10 +992,10 @@
                               has_reqc, has_reqi, has_reqs,           &
 #if defined(mpas)
                               ntc,muc,rainprod,evapprod,                     &
-                              tend_temp_mp_evap_cw,tend_temp_mp_evap_rw,     &     ! MC added 
-                              tend_temp_mp_depo_ice,tend_temp_mp_melt_ice,   &     ! MC added  
-                              tend_temp_mp_frez_ice,                         &     ! MC added 
-
+                              tend_theta_mp_evap_cw,tend_theta_mp_evap_rw,     &     ! MC added 
+                              tend_theta_mp_depo_ice,tend_theta_mp_melt_ice,   &     ! MC added  
+                              tend_theta_mp_frez_ice,                         &     ! MC added 
+                              istep,                     &             ! MC -- added for tendency initialization  
 #endif
                               ids,ide, jds,jde, kds,kde, &             ! domain dims
                               ims,ime, jms,jme, kms,kme, &             ! memory dims
@@ -1031,9 +1028,11 @@
                           rainprod,evapprod
 
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT)::        &     ! MC added 
-                          tend_temp_mp_evap_cw,tend_temp_mp_evap_rw,     &     ! MC added 
-                          tend_temp_mp_depo_ice,tend_temp_mp_melt_ice,   &     ! MC added 
-                          tend_temp_mp_frez_ice                                ! MC added  
+                          tend_theta_mp_evap_cw,tend_theta_mp_evap_rw,     &     ! MC added 
+                          tend_theta_mp_depo_ice,tend_theta_mp_melt_ice,   &     ! MC added 
+                          tend_theta_mp_frez_ice                                ! MC added  
+
+      INTEGER, INTENT(IN):: istep  
 
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT), OPTIONAL:: &
                           refl_10cm
@@ -1123,6 +1122,16 @@
          mp_debug(i:i) = char(0)
       enddo
 
+#if defined(mpas) 
+      if (istep .eq. 1) then 
+         tend_theta_mp_evap_cw(:,:,:)  = 0.0  
+         tend_theta_mp_evap_rw(:,:,:)  = 0.0    
+         tend_theta_mp_depo_ice(:,:,:) = 0.0
+         tend_theta_mp_frez_ice(:,:,:) = 0.0
+         tend_theta_mp_melt_ice(:,:,:) = 0.0
+      end if        
+#endif
+
 !     if (.NOT. is_aerosol_aware .AND. PRESENT(nc) .AND. PRESENT(nwfa)  &
 !               .AND. PRESENT(nifa) .AND. PRESENT(nwfa2d)) then
 !        write(mp_debug,*) 'WARNING, nc-nwfa-nifa-nwfa2d present but is_aerosol_aware is FALSE'
@@ -1185,11 +1194,9 @@
                       pptrain, pptsnow, pptgraul, pptice, &
 #if defined(mpas)
                       rainprod1d, evapprod1d, &
-
                       tend_temp_mp_evap_cw_1d, tend_temp_mp_evap_rw_1d,   &  ! MC added 
                       tend_temp_mp_depo_ice_1d, tend_temp_mp_melt_ice_1d, &  ! MC added  
                       tend_temp_mp_frez_ice_1d, &                            ! MC added 
-
 #endif
                       kts, kte, dt, i, j)
 
@@ -1240,17 +1247,13 @@
             evapprod(i,k,j) = evapprod1d(k)
 
             ! MC added below. Tendencies calculated in mp_thompson are temperature tendencies, so 
-            ! also need to convert to potential temperature tendency by dividing by exner function
-            ! This is done in mpas_atmphys_interface.F to reduce possible precision differences between summed 
-            ! tendency contributions and dtheta_dt_mp calculated from difference in potential temperature 
-            ! due to order of operations
-
-            tend_temp_mp_evap_cw(i,k,j) = tend_temp_mp_evap_cw_1d(k) 
-            tend_temp_mp_evap_rw(i,k,j) = tend_temp_mp_evap_rw_1d(k) 
-            tend_temp_mp_depo_ice(i,k,j) = tend_temp_mp_depo_ice_1d(k) 
-            tend_temp_mp_melt_ice(i,k,j) = tend_temp_mp_melt_ice_1d(k)
-            tend_temp_mp_frez_ice(i,k,j) = tend_temp_mp_frez_ice_1d(k) 
-
+            ! need to convert to potential temperature tendency by dividing by exner function
+            ! and add to potential temperature tendencies already calculated in the case of n_microp > 1 
+            tend_theta_mp_evap_cw(i,k,j)  = tend_theta_mp_evap_cw(i,k,j)  + tend_temp_mp_evap_cw_1d(k)/pii(i,k,j)
+            tend_theta_mp_evap_rw(i,k,j)  = tend_theta_mp_evap_rw(i,k,j)  + tend_temp_mp_evap_rw_1d(k)/pii(i,k,j)
+            tend_theta_mp_depo_ice(i,k,j) = tend_theta_mp_depo_ice(i,k,j) + tend_temp_mp_depo_ice_1d(k)/pii(i,k,j)
+            tend_theta_mp_melt_ice(i,k,j) = tend_theta_mp_melt_ice(i,k,j) + tend_temp_mp_melt_ice_1d(k)/pii(i,k,j)
+            tend_theta_mp_frez_ice(i,k,j) = tend_theta_mp_frez_ice(i,k,j) + tend_temp_mp_frez_ice_1d(k)/pii(i,k,j)
 #endif
             if (qc1d(k) .gt. qc_max) then
              imax_qc = i
@@ -1629,6 +1632,8 @@
          rainprod(k) = 0.
          evapprod(k) = 0.
 
+        ! MC added: MP scheme is an adjustment process that incrementally updates state variables over n_microp steps  
+        ! need to zero these out at beginning of each step               
          tend_temp_mp_evap_cw_1d(k) = 0.   ! MC added  
          tend_temp_mp_evap_rw_1d(k) = 0.   ! MC added 
          tend_temp_mp_depo_ice_1d(k) = 0.  ! MC added 

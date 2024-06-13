@@ -158,13 +158,12 @@
           if(.not.allocated(rainprod_p)) allocate(rainprod_p(ims:ime,kms:kme,jms:jme))
           if(.not.allocated(evapprod_p)) allocate(evapprod_p(ims:ime,kms:kme,jms:jme))
 
-          ! individual heating tends - MC added
-          if(.not.allocated(tend_temp_mp_evap_cw_p)) allocate(tend_temp_mp_evap_cw_p(ims:ime,kms:kme,jms:jme))
-          if(.not.allocated(tend_temp_mp_evap_rw_p)) allocate(tend_temp_mp_evap_rw_p(ims:ime,kms:kme,jms:jme))
-          if(.not.allocated(tend_temp_mp_depo_ice_p)) allocate(tend_temp_mp_depo_ice_p(ims:ime,kms:kme,jms:jme)) 
-          if(.not.allocated(tend_temp_mp_melt_ice_p)) allocate(tend_temp_mp_melt_ice_p(ims:ime,kms:kme,jms:jme))
-          if(.not.allocated(tend_temp_mp_frez_ice_p)) allocate(tend_temp_mp_frez_ice_p(ims:ime,kms:kme,jms:jme))
-
+          ! individual heating tends for PV - MC added
+          if(.not.allocated(tend_theta_mp_evap_cw_p)) allocate(tend_theta_mp_evap_cw_p(ims:ime,kms:kme,jms:jme))
+          if(.not.allocated(tend_theta_mp_evap_rw_p)) allocate(tend_theta_mp_evap_rw_p(ims:ime,kms:kme,jms:jme))
+          if(.not.allocated(tend_theta_mp_depo_ice_p)) allocate(tend_theta_mp_depo_ice_p(ims:ime,kms:kme,jms:jme)) 
+          if(.not.allocated(tend_theta_mp_melt_ice_p)) allocate(tend_theta_mp_melt_ice_p(ims:ime,kms:kme,jms:jme))
+          if(.not.allocated(tend_theta_mp_frez_ice_p)) allocate(tend_theta_mp_frez_ice_p(ims:ime,kms:kme,jms:jme))
        case default
 
     end select microp2_select
@@ -240,13 +239,13 @@
           if(allocated(rainprod_p)) deallocate(rainprod_p)
           if(allocated(evapprod_p)) deallocate(evapprod_p)
 
-          ! individual heating tends - MC added
-          if(allocated(tend_temp_mp_evap_cw_p)) deallocate(tend_temp_mp_evap_cw_p)
-          if(allocated(tend_temp_mp_evap_rw_p)) deallocate(tend_temp_mp_evap_rw_p)
-          if(allocated(tend_temp_mp_depo_ice_p)) deallocate(tend_temp_mp_depo_ice_p)
-          if(allocated(tend_temp_mp_melt_ice_p)) deallocate(tend_temp_mp_melt_ice_p)
-          if(allocated(tend_temp_mp_frez_ice_p)) deallocate(tend_temp_mp_frez_ice_p)
-
+          ! individual heating tends for PV - MC added 
+          if(allocated(tend_theta_mp_evap_cw_p)) deallocate(tend_theta_mp_evap_cw_p)
+          if(allocated(tend_theta_mp_evap_rw_p)) deallocate(tend_theta_mp_evap_rw_p)
+          if(allocated(tend_theta_mp_depo_ice_p)) deallocate(tend_theta_mp_depo_ice_p)
+          if(allocated(tend_theta_mp_melt_ice_p)) deallocate(tend_theta_mp_melt_ice_p)
+          if(allocated(tend_theta_mp_frez_ice_p)) deallocate(tend_theta_mp_frez_ice_p)
+          !end if 
        case default
 
     end select microp2_select
@@ -397,15 +396,27 @@
                   re_cloud  = recloud_p   , re_ice     = reice_p      , re_snow    = resnow_p     , &
                   has_reqc  = has_reqc    , has_reqi   = has_reqi     , has_reqs   = has_reqs     , &
                   ntc       = ntc_p       , muc        = muc_p        ,                             &
-                  tend_temp_mp_evap_cw = tend_temp_mp_evap_cw_p, tend_temp_mp_evap_rw = tend_temp_mp_evap_rw_p     , &  ! MC added
-                  tend_temp_mp_depo_ice = tend_temp_mp_depo_ice_p, tend_temp_mp_melt_ice = tend_temp_mp_melt_ice_p , &  ! MC added
-                  tend_temp_mp_frez_ice = tend_temp_mp_frez_ice_p, & 
+                  tend_theta_mp_evap_cw = tend_theta_mp_evap_cw_p, tend_theta_mp_evap_rw = tend_theta_mp_evap_rw_p     , &  ! MC added
+                  tend_theta_mp_depo_ice = tend_theta_mp_depo_ice_p, tend_theta_mp_melt_ice = tend_theta_mp_melt_ice_p , &  ! MC added
+                  tend_theta_mp_frez_ice = tend_theta_mp_frez_ice_p, &
+                  istep = istep                                                                   , & ! MC added 
                   ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde           , &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme           , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte             &
                            )
        istep = istep + 1
        enddo
+
+       ! MC added for microphysics process tendencies for PV diagnostics
+       ! Need to correct for possibility of n_microp != 1 by averaging the potential temperature
+       ! tendencies. In the Thompson code, t1d is updated with tten*DT, where DT is dt_dyn/n_microp
+       ! Thus, the individual process tendencies need to be equivalently scaled
+       tend_theta_mp_evap_cw_p(:,:,:)  = tend_theta_mp_evap_cw_p(:,:,:)  / (n_microp * 1.0_RKIND)
+       tend_theta_mp_evap_rw_p(:,:,:)  = tend_theta_mp_evap_rw_p(:,:,:)  / (n_microp * 1.0_RKIND)
+       tend_theta_mp_depo_ice_p(:,:,:) = tend_theta_mp_depo_ice_p(:,:,:) / (n_microp * 1.0_RKIND)
+       tend_theta_mp_melt_ice_p(:,:,:) = tend_theta_mp_melt_ice_p(:,:,:) / (n_microp * 1.0_RKIND)
+       tend_theta_mp_frez_ice_p(:,:,:) = tend_theta_mp_frez_ice_p(:,:,:) / (n_microp * 1.0_RKIND)
+
        call mpas_timer_stop('Thompson')
 
     case ("mp_wsm6")

@@ -696,13 +696,6 @@
              nr_p(i,k,j) = nr(k,i)
              rainprod_p(i,k,j) = rainprod(k,i)
              evapprod_p(i,k,j) = evapprod(k,i)
-
-             tend_temp_mp_evap_cw_p(i,k,j) = tend_theta_mp_evap_cw(k,i)     ! MC added
-             tend_temp_mp_evap_rw_p(i,k,j) = tend_theta_mp_evap_rw(k,i)     ! MC added
-             tend_temp_mp_depo_ice_p(i,k,j) = tend_theta_mp_depo_ice(k,i)   ! MC added
-             tend_temp_mp_melt_ice_p(i,k,j) = tend_theta_mp_melt_ice(k,i)   ! MC added
-             tend_temp_mp_frez_ice_p(i,k,j) = tend_theta_mp_frez_ice(k,i)   ! MC added
-
           enddo
           enddo
           enddo
@@ -874,6 +867,12 @@
     ! dtheta_dt_mp stores theta before update; qv_mp_tend stores qv
     ! dtheta_dt_mp(k,i) = (thmmpten(k,i) - rvord*dtheta_dt_mp(k,i)*qvmpten(k,i)) / (1._RKIND + rvord*qv_mp_tend(k,i))
 
+    ! MC for PV microphysics process tendencies:   
+     tend_theta_mp_evap_cw(k,i)  = tend_theta_mp_evap_cw_p(i,k,j)   
+     tend_theta_mp_evap_rw(k,i)  = tend_theta_mp_evap_rw_p(i,k,j)        
+     tend_theta_mp_depo_ice(k,i) = tend_theta_mp_depo_ice_p(i,k,j)       
+     tend_theta_mp_melt_ice(k,i) = tend_theta_mp_melt_ice_p(i,k,j)    
+     tend_theta_mp_frez_ice(k,i) = tend_theta_mp_frez_ice_p(i,k,j)      
 
  enddo
  enddo
@@ -932,13 +931,6 @@
              rainprod(k,i) = rainprod_p(i,k,j)
              evapprod(k,i) = evapprod_p(i,k,j)
 
-             ! Convert microphysics process temperature tendencies to potential temperature tendencies
- 
-             tend_theta_mp_evap_cw(k,i) = tend_temp_mp_evap_cw_p(i,k,j) / exner(k,i)     ! MC added
-             tend_theta_mp_evap_rw(k,i) = tend_temp_mp_evap_rw_p(i,k,j) / exner(k,i)    ! MC added
-             tend_theta_mp_depo_ice(k,i) = tend_temp_mp_depo_ice_p(i,k,j) / exner(k,i)   ! MC added
-             tend_theta_mp_melt_ice(k,i) = tend_temp_mp_melt_ice_p(i,k,j) / exner(k,i)   ! MC added
-             tend_theta_mp_frez_ice(k,i) = tend_temp_mp_frez_ice_p(i,k,j) / exner(k,i)  ! MC added
 
              ! Uncomment dtheta_dt_mp below if calculating in scheme code
 !             dtheta_dt_mp(k,i) = dtheta_dt_mp_p(i,k,j)   ! MC added

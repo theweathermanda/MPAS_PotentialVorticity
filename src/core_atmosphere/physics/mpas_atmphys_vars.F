@@ -267,11 +267,11 @@
     reice_p,          &!
     resnow_p,         &!
     refl10cm_p,        &!
-    tend_temp_mp_evap_cw_p,    &!  MC added
-    tend_temp_mp_evap_rw_p,    &!  MC added
-    tend_temp_mp_depo_ice_p,   &!  MC added
-    tend_temp_mp_frez_ice_p,   &!  MC added
-    tend_temp_mp_melt_ice_p     !  MC added
+    tend_theta_mp_evap_cw_p,    &!  MC added for PV microphysics process tendencies (K/s)
+    tend_theta_mp_evap_rw_p,    &!  MC added for PV microphysics process tendencies (K/s)
+    tend_theta_mp_depo_ice_p,   &!  MC added for PV microphysics process tendencies (K/s)
+    tend_theta_mp_frez_ice_p,   &!  MC added for PV microphysics process tendencies (K/s)
+    tend_theta_mp_melt_ice_p     !  MC added for PV microphysics process tendencies (K/s)
 
 
 !=================================================================================================================
